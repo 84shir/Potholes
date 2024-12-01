@@ -6,9 +6,14 @@
   </head>
   <body>
     <main>
-        <h1>Potholes Here</h1>  
+      <div>  
+      <h1>Potholes Here</h1>  
         <input type="file" id="fileInput" multiple>
         <button onclick="uploadFiles()">Upload</button>
+      </div>
+      <p></p>
+        <input type="text" id="kaggleUrl" multiple>
+        <button onclick="uploadDataset()">Upload Dataset</button>
     </main>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
   </body>
