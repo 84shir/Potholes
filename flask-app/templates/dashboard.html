@@ -1,25 +1,498 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Pothole Dashboard</title>
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <!-- MarkerCluster CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
-</head>
-<body>
+{% extends "base.html" %}
 
-  <!-- Full-screen map; controls injected via Leaflet legend overlay -->
-  <div id="map"></div>
+{% block title %}Dashboard - Potholes.io{% endblock %}
 
-  <!-- Leaflet & MarkerCluster scripts -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-  <!-- Dashboard logic (creates legend with filters & export controls) -->
-  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-</body>
-</html>
+{% block body_class %}map-page{% endblock %}
+
+{% block main_class %}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: none;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+
+    .stats-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        color: white;
+        margin-bottom: 1rem;
+    }
+
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+        margin: 0.5rem 0;
+    }
+
+    .stats-label {
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stats-trend {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-top: 0.5rem;
+    }
+
+    .trend-up {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+    }
+
+    .trend-down {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+
+    .map-container {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        margin: 1rem;
+        position: relative;
+        height: calc(100vh - 200px);
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+
+    .map-overlay {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .map-control {
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(10px);
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+        color: #374151;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .map-control:hover {
+        background: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        color: #1f2937;
+    }
+
+    .quick-actions {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .loading-pulse {
+        animation: pulse 1.5s ease-in-out infinite;
+        background: linear-gradient(90deg, #f3f4f6 25%, transparent 37%, transparent 63%, #f3f4f6 75%);
+        background-size: 400% 100%;
+        animation: shimmer 1.4s ease-in-out infinite;
+        border-radius: 8px;
+        height: 2.5rem;
+        width: 100%;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    .feature-highlight {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border-radius: 16px;
+        padding: 1.5rem;
+        color: white;
+        margin: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Modern Dashboard Header -->
+<div class="dashboard-header">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-5 fw-bold text-white mb-2">
+                    <i class="bi bi-activity me-3"></i>
+                    Pothole Detection Dashboard
+                </h1>
+                <p class="lead text-white-50 mb-0">
+                    Real-time monitoring • AI-powered detection • Smart analytics
+                </p>
+            </div>
+            <div class="col-lg-4 text-end">
+                <div class="d-flex justify-content-end gap-3">
+                    <button class="btn btn-light btn-lg" id="refreshDashboard">
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+                        Refresh Data
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light btn-lg dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-gear me-2"></i>
+                            Options
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <h6 class="dropdown-header">
+                                    <i class="bi bi-lightning-fill me-2"></i>
+                                    Quick Actions
+                                </h6>
+                            </li>
+                            <li><a class="dropdown-item" href="{{ url_for('dashboard.analytics') }}">
+                                <i class="bi bi-graph-up me-2"></i>Advanced Analytics
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('dashboard.incidents') }}">
+                                <i class="bi bi-exclamation-triangle me-2"></i>Manage Incidents
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/export?format=csv">
+                                <i class="bi bi-download me-2"></i>Export Data
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" id="fullscreenToggle">
+                                <i class="bi bi-arrows-fullscreen me-2"></i>Fullscreen Mode
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Dashboard Layout -->
+<div class="container-fluid px-0">
+    <div class="row g-0">
+        <!-- Left Column - Statistics -->
+        <div class="col-lg-4 col-xl-3">
+            <div class="p-3">
+                <!-- Statistics Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <div class="stats-icon mx-auto" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                </div>
+                                <p class="stats-label">Total Detected</p>
+                                <div id="total-potholes" class="loading-pulse">
+                                    <h2 class="stats-number text-primary">-</h2>
+                                </div>
+                                <div class="stats-trend trend-up" id="total-trend" style="display: none;">
+                                    <i class="bi bi-trending-up"></i>
+                                    +12% vs last month
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <div class="stats-icon mx-auto" style="background: linear-gradient(135deg, #ff6b6b, #ee5a24);">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                </div>
+                                <p class="stats-label">Critical Issues</p>
+                                <div id="high-severity" class="loading-pulse">
+                                    <h2 class="stats-number text-danger">-</h2>
+                                </div>
+                                <div class="stats-trend trend-down" id="severity-trend" style="display: none;">
+                                    <i class="bi bi-exclamation-circle"></i>
+                                    Needs attention
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <div class="stats-icon mx-auto" style="background: linear-gradient(135deg, #feca57, #ff9ff3);">
+                                    <i class="bi bi-calendar-week-fill"></i>
+                                </div>
+                                <p class="stats-label">Weekly Activity</p>
+                                <div id="this-week" class="loading-pulse">
+                                    <h2 class="stats-number text-warning">-</h2>
+                                </div>
+                                <div class="stats-trend trend-up" id="weekly-trend" style="display: none;">
+                                    <i class="bi bi-graph-up"></i>
+                                    5.2 per day avg
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <div class="stats-icon mx-auto" style="background: linear-gradient(135deg, #26de81, #20bf6b);">
+                                    <i class="bi bi-cpu-fill"></i>
+                                </div>
+                                <p class="stats-label">AI Confidence</p>
+                                <div id="avg-confidence" class="loading-pulse">
+                                    <h2 class="stats-number text-success">-</h2>
+                                </div>
+                                <div class="stats-trend trend-up" id="confidence-trend" style="display: none;">
+                                    <i class="bi bi-robot"></i>
+                                    Model optimized
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h5 class="mb-3">
+                        <i class="bi bi-lightning-fill text-warning me-2"></i>
+                        Quick Actions
+                    </h5>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('dashboard.incidents') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Report Issue
+                        </a>
+                        <a href="{{ url_for('dashboard.analytics') }}" class="btn btn-primary">
+                            <i class="bi bi-graph-up me-2"></i>
+                            View Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Map -->
+        <div class="col-lg-8 col-xl-9">
+            <div class="map-container">
+                <div class="map-overlay">
+                    <button class="map-control" id="zoomFit" title="Zoom to Fit All">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                    <button class="map-control" id="toggleClusters" title="Toggle Clustering">
+                        <i class="bi bi-collection"></i>
+                    </button>
+                    <button class="map-control" id="toggleHeatmap" title="Heat Map View">
+                        <i class="bi bi-thermometer-half"></i>
+                    </button>
+                    <button class="map-control" id="focusRecent" title="Recent Detections">
+                        <i class="bi bi-clock-history"></i>
+                    </button>
+                </div>
+
+                <!-- Map -->
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Enhanced dashboard functionality
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardStats();
+    initializeMapControls();
+
+    // Event listeners
+    document.getElementById('refreshDashboard').addEventListener('click', refreshDashboard);
+    document.getElementById('fullscreenToggle').addEventListener('click', toggleFullscreen);
+});
+
+async function loadDashboardStats() {
+    try {
+        const response = await fetch('/api/analytics/summary');
+        const data = await response.json();
+
+        if (data.metrics) {
+            // Update stats with animations
+            animateStatUpdate('total-potholes', data.metrics.total || 0, 'text-primary');
+            animateStatUpdate('high-severity', data.metrics.highSeverity || 0, 'text-danger');
+            animateStatUpdate('this-week', data.metrics.weekly || 0, 'text-warning');
+            animateStatUpdate('avg-confidence', `${data.metrics.confidence || 0}%`, 'text-success');
+
+            // Show trend indicators
+            showTrendIndicators(data.metrics);
+        }
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        showErrorState();
+    }
+}
+
+function animateStatUpdate(elementId, value, colorClass) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.classList.remove('loading-pulse');
+        element.innerHTML = `<h2 class="stats-number ${colorClass}">${value}</h2>`;
+
+        // Add a subtle animation
+        element.style.animation = 'fadeInUp 0.6s ease-out';
+    }
+}
+
+function showTrendIndicators(metrics) {
+    if (metrics.totalChange && metrics.totalChange > 0) {
+        const trendEl = document.getElementById('total-trend');
+        if (trendEl) {
+            trendEl.innerHTML = `<i class="bi bi-trending-up"></i> +${metrics.totalChange}% vs last month`;
+            trendEl.style.display = 'inline-flex';
+        }
+    }
+
+    if (metrics.weeklyTrend) {
+        const weeklyEl = document.getElementById('weekly-trend');
+        if (weeklyEl) {
+            weeklyEl.innerHTML = `<i class="bi bi-graph-up"></i> ${metrics.weeklyTrend} per day avg`;
+            weeklyEl.style.display = 'inline-flex';
+        }
+    }
+
+    // Always show confidence trend
+    const confidenceEl = document.getElementById('confidence-trend');
+    if (confidenceEl) {
+        confidenceEl.style.display = 'inline-flex';
+    }
+}
+
+function showErrorState() {
+    ['total-potholes', 'high-severity', 'this-week', 'avg-confidence'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.remove('loading-pulse');
+            element.innerHTML = '<h2 class="stats-number text-muted"><i class="bi bi-exclamation-circle"></i></h2>';
+        }
+    });
+}
+
+function initializeMapControls() {
+    // Map control event listeners
+    document.getElementById('zoomFit')?.addEventListener('click', () => {
+        if (window.map && window.markersGroup) {
+            window.map.fitBounds(window.markersGroup.getBounds());
+        }
+    });
+
+    document.getElementById('toggleClusters')?.addEventListener('click', () => {
+        // Toggle clustering functionality
+        console.log('Toggle clusters');
+    });
+
+    document.getElementById('toggleHeatmap')?.addEventListener('click', () => {
+        // Toggle heatmap functionality
+        console.log('Toggle heatmap');
+    });
+
+    document.getElementById('focusRecent')?.addEventListener('click', () => {
+        // Focus on recent detections
+        console.log('Focus recent');
+    });
+}
+
+function refreshDashboard() {
+    // Show loading state
+    ['total-potholes', 'high-severity', 'this-week', 'avg-confidence'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.className = 'loading-pulse';
+            element.innerHTML = '';
+        }
+    });
+
+    // Hide trend indicators
+    ['total-trend', 'severity-trend', 'weekly-trend', 'confidence-trend'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.style.display = 'none';
+    });
+
+    // Reload data
+    setTimeout(loadDashboardStats, 500); // Small delay for better UX
+}
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+
+<!-- Dashboard logic (creates legend with filters & export controls) -->
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}

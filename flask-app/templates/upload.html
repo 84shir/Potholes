@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Images - Potholes.io{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h1 class="display-5 fw-bold text-primary">
+                    <i class="bi bi-cloud-upload"></i>
+                    Upload Pothole Images
+                </h1>
+                <p class="lead text-muted">Upload images for AI-powered pothole detection and analysis</p>
+            </div>
+
+            <!-- Quick Navigation -->
+            <div class="alert alert-info d-flex align-items-center" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <div>
+                    Ready to view detected potholes?
+                    <a href="{{ url_for('dashboard.dashboard') }}" class="alert-link fw-bold">Go to Dashboard →</a>
+                </div>
+            </div>
+
+            <!-- File Upload Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-image"></i>
+                        Upload Individual Files
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="fileInput" class="form-label">Select pothole images</label>
+                        <input type="file" class="form-control" id="fileInput" multiple accept="image/*">
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i>
+                            Supported formats: JPG, PNG, GIF. Multiple files can be selected.
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-lg" id="uploadBtn">
+                        <i class="bi bi-upload"></i>
+                        Upload Files
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kaggle Dataset Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-database"></i>
+                        Import from Kaggle Dataset
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="kaggleUrl" class="form-label">Kaggle Dataset URL</label>
+                        <input type="text" class="form-control" id="kaggleUrl"
+                               placeholder="e.g., owner/dataset-name">
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i>
+                            Enter the dataset path from Kaggle (e.g., "username/pothole-dataset")
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success btn-lg" id="uploadDatasetBtn">
+                        <i class="bi bi-download"></i>
+                        Import Kaggle Dataset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-journal-text"></i>
+                        Activity Log
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="log" class="bg-light p-3 rounded" style="height: 200px; overflow-y: auto; font-family: monospace; white-space: pre-wrap;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+    const logEl = document.getElementById('log');
+
+    function log(msg) {
+        console.log(msg);
+        logEl.textContent += msg + '\n';
+        logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    document.getElementById('uploadBtn').addEventListener('click', uploadFiles);
+    document.getElementById('uploadDatasetBtn').addEventListener('click', uploadDataset);
+
+    async function uploadFiles() {
+        const files = document.getElementById('fileInput').files;
+        if (!files.length) {
+            alert('Please select one or more files.');
+            return;
+        }
+
+        const uploadBtn = document.getElementById('uploadBtn');
+        const originalText = uploadBtn.innerHTML;
+        uploadBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i>Uploading...';
+        uploadBtn.disabled = true;
+
+        log('🚀 Starting file upload process...');
+
+        for (const file of files) {
+            const fileName = file.name;
+            const fileType = file.type;
+            log(`📋 Requesting presigned URL for ${fileName}...`);
+
+            try {
+                const res = await fetch('/generate_presigned_url', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ file_name: fileName, file_type: fileType })
+                });
+                const payload = await res.json();
+                if (payload.error) { throw new Error(payload.error); }
+
+                const { url, fields } = payload.data;
+                const formData = new FormData();
+                Object.entries(fields).forEach(([key, value]) => formData.append(key, value));
+                formData.append('file', file);
+
+                log(`📤 Uploading ${fileName} to cloud storage...`);
+                const uploadRes = await fetch(url, { method: 'POST', body: formData });
+                if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status}`);
+                log(`✅ ${fileName} uploaded successfully!`);
+            } catch (err) {
+                log(`❌ Error uploading ${fileName}: ${err.message}`);
+            }
+        }
+
+        log('🎉 All files processed!');
+        uploadBtn.innerHTML = originalText;
+        uploadBtn.disabled = false;
+    }
+
+    async function uploadDataset() {
+        const datasetUrl = document.getElementById('kaggleUrl').value.trim();
+        if (!datasetUrl) {
+            alert('Please enter a Kaggle dataset URL.');
+            return;
+        }
+
+        const uploadBtn = document.getElementById('uploadDatasetBtn');
+        const originalText = uploadBtn.innerHTML;
+        uploadBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i>Processing...';
+        uploadBtn.disabled = true;
+
+        log(`🔍 Pulling dataset "${datasetUrl}" from Kaggle...`);
+
+        try {
+            const res = await fetch('/generate_presigned_url', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ dataset_url: datasetUrl })
+            });
+            const payload = await res.json();
+            if (payload.error) { throw new Error(payload.error); }
+
+            const results = payload.results;
+            log(`📊 Received ${results.length} presigned entries:`);
+            results.forEach(r => log(`  • ${r.file_name}`));
+            log('✅ Kaggle dataset presigned URLs generated successfully!');
+        } catch (err) {
+            log(`❌ Error: ${err.message}`);
+        }
+
+        uploadBtn.innerHTML = originalText;
+        uploadBtn.disabled = false;
+    }
+
+    log('💻 Upload interface ready. Select files or enter a Kaggle dataset URL to get started.');
+</script>
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+
+{% endblock %}

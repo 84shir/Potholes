@@ -1,0 +1,598 @@
+{% extends "base.html" %}
+
+{% block title %}Future Services - Potholes.io{% endblock %}
+
+{% block extra_head %}
+<style>
+    .futures-hero {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
+        padding: 4rem 0;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .futures-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -20%;
+        width: 40%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.05);
+        transform: rotate(-15deg);
+    }
+
+    .service-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        border: none;
+        transition: all 0.3s ease;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .service-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--service-color);
+    }
+
+    .service-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    .service-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: white;
+        margin: 0 auto 2rem;
+        background: var(--service-color);
+    }
+
+    .price-tag {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--service-color);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 15px;
+        font-weight: 700;
+        font-size: 0.875rem;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0;
+    }
+
+    .feature-list li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+        color: #374151;
+    }
+
+    .feature-check {
+        background: var(--service-color);
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    .coming-soon-badge {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .pricing-tier {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .pricing-amount {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--service-color);
+        line-height: 1;
+    }
+
+    .pricing-period {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .early-access-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+        margin-top: 3rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Futures Hero Section -->
+<div class="futures-hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mx-auto text-center">
+                <div class="coming-soon-badge">
+                    <i class="bi bi-rocket-takeoff"></i>
+                    Coming 2025
+                </div>
+
+                <h1 class="display-4 fw-bold mb-3">
+                    Future Services
+                </h1>
+
+                <p class="lead mb-4 opacity-90">
+                    Expanding beyond detection to comprehensive infrastructure management solutions
+                </p>
+
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="#daas" class="btn btn-light btn-lg">
+                        <i class="bi bi-cloud-check me-2"></i>
+                        Defects as a Service
+                    </a>
+                    <a href="#brokerage" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-tools me-2"></i>
+                        Repair Brokerage
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Defects as a Service Section -->
+<div class="container my-5 py-5" id="daas">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold text-dark mb-3">
+                    <i class="bi bi-cloud-check text-primary me-3"></i>
+                    Defects as a Service (DaaS)
+                </h2>
+                <p class="lead text-muted">
+                    Comprehensive infrastructure monitoring without the hardware investment
+                </p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="service-card" style="--service-color: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                        <div class="price-tag">Starting $299/mo</div>
+                        <div class="service-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                            <i class="bi bi-speedometer2"></i>
+                        </div>
+
+                        <h4 class="text-center mb-3">Monitoring Service</h4>
+                        <p class="text-center text-muted mb-4">
+                            We deploy and manage edge devices on your fleet vehicles, providing continuous road monitoring with zero hardware investment from you.
+                        </p>
+
+                        <ul class="feature-list">
+                            <li>
+                                <div class="feature-check" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                                    <i class="bi bi-check"></i>
+                                </div>
+                                Hardware deployment & maintenance
+                            </li>
+                            <li>
+                                <div class="feature-check" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                                    <i class="bi bi-check"></i>
+                                </div>
+                                24/7 automated detection
+                            </li>
+                            <li>
+                                <div class="feature-check" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                                    <i class="bi bi-check"></i>
+                                </div>
+                                Real-time alerting system
+                            </li>
+                            <li>
+                                <div class="feature-check" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                                    <i class="bi bi-check"></i>
+                                </div>
+                                Monthly defect reports
+                            </li>
+                            <li>
+                                <div class="feature-check" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                                    <i class="bi bi-check"></i>
+                                </div>
+                                Priority routing for critical issues
+                            </li>
+                        </ul>
+
+                        <div class="text-center">
+                            <button class="btn btn-primary btn-lg">
+                                <i class="bi bi-calendar-check me-2"></i>
+                                Schedule Consultation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="service-card" style="--service-color: linear-gradient(135deg, #10b981, #059669);">
+                        <div class="price-tag">Starting $149/mo</div>
+                        <div class="service-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="bi bi-database-check"></i>
+                        </div>
+
+                        <h4 class="text-center mb-3">Data Analytics Service</h4>
+                        <p class="text-center text-muted mb-4">
+                            Advanced analytics and reporting on your existing road condition data, with predictive maintenance insights and budget planning tools.
+                        </p>
+
+                        <ul class="feature-list">
+                            <li>
+                                <div class="feature-check" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                    <i class="bi bi-check"></i>
+                                </div>
+                                Predictive maintenance modeling
+                            </li>
+                            <li>
+                                <div class="feature-check" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                    <i class="bi bi-check"></i>
+                                </div>
+                                Budget optimization reports
+                            </li>
+                            <li>
+                                <div class="feature-check" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                    <i class="bi bi-check"></i>
+                                </div>
+                                Custom dashboard development
+                            </li>
+                            <li>
+                                <div class="feature-check" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                    <i class="bi bi-check"></i>
+                                </div>
+                                API integration with existing systems
+                            </li>
+                            <li>
+                                <div class="feature-check" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                    <i class="bi bi-check"></i>
+                                </div>
+                                Quarterly strategy consultations
+                            </li>
+                        </ul>
+
+                        <div class="text-center">
+                            <button class="btn btn-success btn-lg">
+                                <i class="bi bi-graph-up me-2"></i>
+                                Get Analytics Demo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Value Proposition -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h3 class="fw-bold mb-3">Why Defects as a Service?</h3>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="text-center">
+                            <div class="bg-primary text-white rounded-circle p-3 d-inline-flex mb-3">
+                                <i class="bi bi-currency-dollar fs-4"></i>
+                            </div>
+                            <h5>No Upfront Costs</h5>
+                            <p class="text-muted small">Avoid $10K+ hardware investments</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-center">
+                            <div class="bg-success text-white rounded-circle p-3 d-inline-flex mb-3">
+                                <i class="bi bi-tools fs-4"></i>
+                            </div>
+                            <h5>Full Maintenance</h5>
+                            <p class="text-muted small">We handle all technical support</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-center">
+                            <div class="bg-warning text-white rounded-circle p-3 d-inline-flex mb-3">
+                                <i class="bi bi-lightning-charge fs-4"></i>
+                            </div>
+                            <h5>Immediate Start</h5>
+                            <p class="text-muted small">Deploy within 2 weeks</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-center">
+                            <div class="bg-info text-white rounded-circle p-3 d-inline-flex mb-3">
+                                <i class="bi bi-graph-up fs-4"></i>
+                            </div>
+                            <h5>Scalable</h5>
+                            <p class="text-muted small">Grow from 1 to 100+ vehicles</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div style="background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 20px; padding: 3rem; color: white;">
+                    <i class="bi bi-diagram-3" style="font-size: 4rem; opacity: 0.8;"></i>
+                    <h4 class="mt-3 mb-2">End-to-End Solution</h4>
+                    <p class="mb-0 opacity-75">From edge detection to cloud analytics, we handle the entire infrastructure monitoring pipeline</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Brokerage Preview -->
+<div class="container my-5 py-5" id="brokerage">
+    <div class="text-center mb-5">
+        <h2 class="display-5 fw-bold text-dark mb-3">
+            <i class="bi bi-tools text-warning me-3"></i>
+            Repair Brokerage Network
+        </h2>
+        <p class="lead text-muted">
+            Connect with verified contractors for competitive repair pricing
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="service-card" style="--service-color: linear-gradient(135deg, #f59e0b, #d97706);">
+                <div class="service-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <i class="bi bi-search"></i>
+                </div>
+
+                <h4 class="text-center mb-3">Smart Matching</h4>
+                <p class="text-center text-muted mb-4">
+                    AI-powered contractor matching based on location, severity, and historical performance data.
+                </p>
+
+                <ul class="feature-list">
+                    <li>
+                        <div class="feature-check" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="bi bi-check"></i>
+                        </div>
+                        Verified contractor network
+                    </li>
+                    <li>
+                        <div class="feature-check" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="bi bi-check"></i>
+                        </div>
+                        Performance-based rankings
+                    </li>
+                    <li>
+                        <div class="feature-check" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="bi bi-check"></i>
+                        </div>
+                        Location-optimized routing
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="service-card" style="--service-color: linear-gradient(135deg, #ef4444, #dc2626);">
+                <div class="service-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                    <i class="bi bi-calculator"></i>
+                </div>
+
+                <h4 class="text-center mb-3">Cost Optimization</h4>
+                <p class="text-center text-muted mb-4">
+                    Real-time price comparison and bulk discount negotiation to minimize your repair costs.
+                </p>
+
+                <ul class="feature-list">
+                    <li>
+                        <div class="feature-check" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <i class="bi bi-check"></i>
+                        </div>
+                        Competitive bid system
+                    </li>
+                    <li>
+                        <div class="feature-check" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <i class="bi bi-check"></i>
+                        </div>
+                        Bulk discount negotiations
+                    </li>
+                    <li>
+                        <div class="feature-check" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <i class="bi bi-check"></i>
+                        </div>
+                        Transparent pricing
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="service-card" style="--service-color: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                <div class="service-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+
+                <h4 class="text-center mb-3">Quality Assurance</h4>
+                <p class="text-center text-muted mb-4">
+                    Post-repair verification using our AI detection system to ensure quality workmanship.
+                </p>
+
+                <ul class="feature-list">
+                    <li>
+                        <div class="feature-check" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                            <i class="bi bi-check"></i>
+                        </div>
+                        AI-verified completions
+                    </li>
+                    <li>
+                        <div class="feature-check" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                            <i class="bi bi-check"></i>
+                        </div>
+                        Performance tracking
+                    </li>
+                    <li>
+                        <div class="feature-check" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                            <i class="bi bi-check"></i>
+                        </div>
+                        Warranty management
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Early Access CTA -->
+<div class="container">
+    <div class="early-access-card">
+        <h3 class="fw-bold mb-3">
+            <i class="bi bi-lightning-charge-fill me-2"></i>
+            Get Early Access
+        </h3>
+        <p class="mb-4 opacity-90">
+            Be among the first to experience our comprehensive infrastructure services. Early adopters receive exclusive pricing and priority support.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('dashboard.contact') }}" class="btn btn-light btn-lg">
+                <i class="bi bi-envelope me-2"></i>
+                Join Waitlist
+            </a>
+            <a href="{{ url_for('dashboard.brokerage') }}" class="btn btn-outline-light btn-lg">
+                <i class="bi bi-tools me-2"></i>
+                View Brokerage
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Technology Integration -->
+<div class="bg-light py-5 mt-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h3 class="fw-bold mb-4">Seamless Integration</h3>
+                <p class="mb-4">
+                    Our future services build upon the same proven technology stack that won us the Drexel University Senior Design Championship.
+                </p>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center p-3 bg-white rounded shadow-sm">
+                            <div class="bg-primary text-white rounded-circle p-2 me-3">
+                                <i class="bi bi-cpu"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Edge AI</h6>
+                                <small class="text-muted">Hailo accelerated</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center p-3 bg-white rounded shadow-sm">
+                            <div class="bg-success text-white rounded-circle p-2 me-3">
+                                <i class="bi bi-cloud"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Cloud Backend</h6>
+                                <small class="text-muted">Tigris S3 storage</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center p-3 bg-white rounded shadow-sm">
+                            <div class="bg-warning text-white rounded-circle p-2 me-3">
+                                <i class="bi bi-geo-alt"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">GPS Tracking</h6>
+                                <small class="text-muted">Precise location data</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center p-3 bg-white rounded shadow-sm">
+                            <div class="bg-info text-white rounded-circle p-2 me-3">
+                                <i class="bi bi-camera"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Computer Vision</h6>
+                                <small class="text-muted">YOLOv11 models</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 text-center">
+                <img src="https://via.placeholder.com/400x300/667eea/ffffff?text=Coming+2025"
+                     alt="Future Services Preview"
+                     class="img-fluid rounded shadow"
+                     style="border-radius: 20px;">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// Contact form submission for early access
+document.querySelectorAll('button').forEach(button => {
+    if (button.textContent.includes('Schedule') || button.textContent.includes('Demo')) {
+        button.addEventListener('click', () => {
+            window.location.href = '{{ url_for("dashboard.contact") }}';
+        });
+    }
+});
+</script>
+{% endblock %}

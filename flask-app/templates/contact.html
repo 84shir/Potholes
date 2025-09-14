@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - Potholes.io{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold text-primary">
+                    <i class="bi bi-envelope"></i>
+                    Contact Us
+                </h1>
+                <p class="lead text-muted">Get in touch with the Potholes.io team</p>
+            </div>
+
+            <!-- Company Info -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-building"></i>
+                        About Potholes.io
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p class="card-text">We are an innovative company specializing in intelligent pothole detection and management systems. Our cutting-edge computer vision technology helps cities and organizations efficiently identify, track, and manage road infrastructure issues.</p>
+                            <div class="alert alert-success">
+                                <i class="bi bi-trophy-fill me-2"></i>
+                                <strong>Award Winners:</strong> Senior Design Championship at Drexel University
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="bg-light p-3 rounded">
+                                <h6 class="text-primary">General Inquiries</h6>
+                                <a href="mailto:team@potholes.io" class="text-decoration-none">
+                                    <i class="bi bi-envelope-fill"></i> team@potholes.io
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leadership Team -->
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people-fill"></i>
+                        Leadership Team
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="text-center p-3 border rounded h-100">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-person-badge-fill fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold text-primary">Zacharia Hammad</h6>
+                                <p class="text-muted mb-0">Chief Executive Officer</p>
+                                <small class="text-secondary">CEO</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="text-center p-3 border rounded h-100">
+                                <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-cpu-fill fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold text-primary">Bashir Abdallah</h6>
+                                <p class="text-muted mb-0">Chief Information Officer</p>
+                                <small class="text-secondary">CIO</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="text-center p-3 border rounded h-100">
+                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-gear-fill fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold text-primary">Quentin Carrel</h6>
+                                <p class="text-muted mb-0">Chief Technology Officer</p>
+                                <small class="text-secondary">CTO</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="text-center p-3 border rounded h-100">
+                                <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-briefcase-fill fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold text-primary">Bryson Cligget</h6>
+                                <p class="text-muted mb-0">Chief Operating Officer</p>
+                                <small class="text-secondary">COO</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="text-center p-3 border rounded h-100">
+                                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-megaphone-fill fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold text-primary">Kai Thompson</h6>
+                                <p class="text-muted mb-0">Chief Marketing Officer</p>
+                                <small class="text-secondary">CMO</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-chat-dots"></i>
+                        Get In Touch
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="contactForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Name *</label>
+                                <input type="text" class="form-control" id="name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="email" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="company" class="form-label">Company/Organization</label>
+                                <input type="text" class="form-control" id="company">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="subject" class="form-label">Subject *</label>
+                                <select class="form-select" id="subject" required>
+                                    <option value="">Select a topic</option>
+                                    <option value="partnership">Partnership Opportunities</option>
+                                    <option value="technical">Technical Support</option>
+                                    <option value="sales">Sales Inquiry</option>
+                                    <option value="demo">Request a Demo</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message *</label>
+                            <textarea class="form-control" id="message" rows="5" required placeholder="Tell us about your project, questions, or how we can help you..."></textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send"></i>
+                                Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-clock text-primary fs-1 mb-3"></i>
+                            <h5>Response Time</h5>
+                            <p class="text-muted">We typically respond to inquiries within 24 hours during business days.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-shield-check text-success fs-1 mb-3"></i>
+                            <h5>Privacy</h5>
+                            <p class="text-muted">Your information is secure and will only be used to respond to your inquiry.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Get form data
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const company = document.getElementById('company').value;
+    const subject = document.getElementById('subject').value;
+    const message = document.getElementById('message').value;
+
+    // Create mailto link with form data
+    const mailtoLink = `mailto:team@potholes.io?subject=${encodeURIComponent(subject + (company ? ' - ' + company : ''))}` +
+        `&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n${company ? 'Company: ' + company + '\n' : ''}\nMessage:\n\n${message}`)}`;
+
+    // Open default email client
+    window.location.href = mailtoLink;
+
+    // Show success message
+    const form = e.target;
+    const originalHTML = form.innerHTML;
+    form.innerHTML = `
+        <div class="text-center py-4">
+            <i class="bi bi-check-circle-fill text-success fs-1"></i>
+            <h5 class="mt-3">Message Prepared!</h5>
+            <p class="text-muted">Your default email client should have opened with your message ready to send.</p>
+            <button type="button" class="btn btn-outline-primary" onclick="location.reload()">Send Another Message</button>
+        </div>
+    `;
+});
+</script>
+{% endblock %}

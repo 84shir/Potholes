@@ -49,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const w = L.DomUtil.create('div', 'leaflet-control legend tb-panel');
       w.innerHTML = `
         <div class="panel-header">
-          <a href="/" class="home-link">Home</a>
           <h3>Filters & Export</h3>
         </div>
         <div class="tb-body">
@@ -149,19 +148,73 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await res.json();
         markers.clearLayers();
         data.forEach(p => {
+          const severityText = p.severity >= 4 ? 'Critical' : p.severity >= 3 ? 'High' : p.severity >= 2 ? 'Medium' : 'Low';
+          const confidencePercent = Math.round(p.confidence * 100);
+          const formattedDate = new Date(p.date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+
           L.marker([p.lat, p.lng], { icon: makeIcon(p.severity) })
             .bindPopup(`
-              ${p.image_url
-                ? `<img src="${p.image_url}" style="max-width:200px; display:block; margin-top:5px;" alt="Pothole image">`
-                : `<em>No image available</em>`
-              }
-              <strong>ID:</strong> ${p.id}<br>
-              <strong>Date:</strong> ${p.date}<br>
-              <strong>Severity:</strong> ${p.severity}<br>
-              <strong>Confidence:</strong> ${p.confidence.toFixed(2)}<br>
-              
-            `)
+              <div class="popup-header">
+                <h4 class="popup-title">🕳️ Pothole Detection</h4>
+                <p class="popup-subtitle">ID: ${p.id} • ${formattedDate}</p>
+              </div>
 
+              <div class="popup-body">
+                <div class="popup-image-container">
+                  ${p.image_url
+                    ? `<img src="${p.image_url}" class="popup-image" alt="Pothole image" loading="lazy">`
+                    : `<div class="popup-image-placeholder">📷</div>`
+                  }
+                </div>
+
+                <div class="popup-details">
+                  <div class="popup-info-grid">
+                    <div class="popup-info-item">
+                      <div class="popup-info-label">Severity Level</div>
+                      <div class="popup-info-value severity">
+                        <span class="popup-severity-badge severity-${p.severity}">${severityText}</span>
+                      </div>
+                    </div>
+
+                    <div class="popup-info-item">
+                      <div class="popup-info-label">AI Confidence</div>
+                      <div class="popup-info-value">${confidencePercent}%</div>
+                      <div class="popup-confidence-bar">
+                        <div class="popup-confidence-fill" style="width: ${confidencePercent}%"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  ${p.description ? `
+                    <div class="popup-description">
+                      <p class="popup-description-text">${p.description}</p>
+                    </div>
+                  ` : ''}
+
+                  <div class="popup-actions">
+                    <button class="popup-action-btn primary" onclick="window.open('/incidents', '_blank')">
+                      📋 View Details
+                    </button>
+                    <button class="popup-action-btn secondary" onclick="navigator.share ? navigator.share({title: 'Pothole Report', text: 'Found pothole at ${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}'}) : alert('Location: ${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}')">
+                      📍 Share
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="popup-meta">
+                <div class="popup-timestamp">
+                  🕐 ${formattedDate}
+                </div>
+                <div class="popup-coordinates">
+                  📍 ${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}
+                </div>
+              </div>
+            `)
             .addTo(markers);
         });
       } catch (err) {

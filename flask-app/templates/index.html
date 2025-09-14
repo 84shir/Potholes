@@ -1,95 +1,596 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
-    <!-- at top of index.html -->
-    <a href="{{ url_for('dashboard.dashboard') }}">Go to Pothole Map Dashboard →</a>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-    <title>Upload Potholes</title>
-    <style>
-      body { font-family: Arial, sans-serif; margin: 2rem; }
-      input, button { margin: 0.5rem 0; display: block; }
-      #log { margin-top: 1rem; white-space: pre-wrap; background: #f8f8f8; padding: 1rem; border: 1px solid #ddd; height: 200px; overflow-y: auto; }
-    </style>
-  </head>
-  <body>
-    <main>
-      <h1>Upload Pothole Images</h1>
-      <div>
-        <input type="file" id="fileInput" multiple />
-        <button id="uploadBtn">Upload Files</button>
-      </div>
-      <h2>Or Pull from Kaggle</h2>
-      <div>
-        <input type="text" id="kaggleUrl" placeholder="Kaggle dataset URL (e.g. owner/dataset-name)" />
-        <button id="uploadDatasetBtn">Upload Kaggle Dataset</button>
-      </div>
-      <div id="log"></div>
-    </main>
+{% extends "base.html" %}
 
-    <script>
-      const logEl = document.getElementById('log');
-      function log(msg) {
-        console.log(msg);
-        logEl.textContent += msg + '\n';
-      }
+{% block title %}Potholes.io - AI-Powered Road Infrastructure Intelligence{% endblock %}
 
-      document.getElementById('uploadBtn').addEventListener('click', uploadFiles);
-      document.getElementById('uploadDatasetBtn').addEventListener('click', uploadDataset);
+{% block extra_head %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 4rem 0;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
 
-      async function uploadFiles() {
-        const files = document.getElementById('fileInput').files;
-        if (!files.length) { alert('Please select one or more files.'); return; }
-        for (const file of files) {
-          const fileName = file.name;
-          const fileType = file.type;
-          log(`Requesting presigned URL for ${fileName}...`);
-          try {
-            const res = await fetch('/generate_presigned_url', {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({ file_name: fileName, file_type: fileType })
-            });
-            const payload = await res.json();
-            if (payload.error) { throw new Error(payload.error); }
-            const { url, fields } = payload.data;
-            const formData = new FormData();
-            Object.entries(fields).forEach(([key, value]) => formData.append(key, value));
-            formData.append('file', file);
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 40%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: rotate(15deg);
+    }
 
-            log(`Uploading ${fileName} to Tigris S3...`);
-            const uploadRes = await fetch(url, { method: 'POST', body: formData });
-            if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status}`);
-            log(`✅ ${fileName} uploaded successfully.`);
-          } catch (err) {
-            log(`❌ Error uploading ${fileName}: ${err.message}`);
-          }
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(45deg, #ffffff, #f0f9ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-subtitle {
+        font-size: 1.25rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+        font-weight: 400;
+        line-height: 1.6;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        border: none;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        margin: 0 auto 1.5rem;
+    }
+
+    .stats-section {
+        background: #f8fafc;
+        padding: 4rem 0;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #1e293b;
+        display: block;
+        line-height: 1;
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 1rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 0.5rem;
+    }
+
+    .cta-section {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        padding: 4rem 0;
+        color: white;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-outline-custom {
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        background: transparent;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .btn-outline-custom:hover {
+        background: white;
+        color: #1e293b;
+        transform: translateY(-2px);
+    }
+
+    .award-badge {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .section-subtitle {
+        font-size: 1.125rem;
+        color: #64748b;
+        text-align: center;
+        margin-bottom: 3rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
         }
-        log('All files processed.');
-      }
 
-      async function uploadDataset() {
-        const datasetUrl = document.getElementById('kaggleUrl').value.trim();
-        if (!datasetUrl) { alert('Please enter a Kaggle dataset URL.'); return; }
-        log(`Pulling dataset ${datasetUrl} from Kaggle and requesting uploads...`);
-        try {
-          const res = await fetch('/generate_presigned_url', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ dataset_url: datasetUrl })
-          });
-          const payload = await res.json();
-          if (payload.error) { throw new Error(payload.error); }
-          const results = payload.results;
-          log(`Received ${results.length} presigned entries.`);
-          results.forEach(r => log(`• ${r.file_name} => ${r.url}`));
-          log('✅ Kaggle dataset presigned URLs generated.');
-        } catch (err) {
-          log(`❌ Error: ${err.message}`);
+        .hero-subtitle {
+            font-size: 1.1rem;
         }
-      }
-    </script>
-    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
-  </body>
-</html>
+
+        .stat-number {
+            font-size: 2.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 hero-content">
+                <div class="award-badge">
+                    <i class="bi bi-trophy-fill"></i>
+                    2025 Senior Design Champions - Drexel University
+                </div>
+
+                <h1 class="hero-title">
+                    Revolutionizing Road Infrastructure with AI
+                </h1>
+
+                <p class="hero-subtitle">
+                    Potholes.io uses cutting-edge computer vision and machine learning to automatically detect and classify road surface issues. Our award-winning technology, recognized at Drexel University, provides innovative solutions for infrastructure monitoring.
+                </p>
+
+                <div class="d-flex flex-column flex-md-row gap-3 mt-4">
+                    <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-primary-custom">
+                        <i class="bi bi-rocket-takeoff me-2"></i>
+                        View Live Dashboard
+                    </a>
+                    <a href="{{ url_for('dashboard.contact') }}" class="btn btn-outline-custom">
+                        <i class="bi bi-chat-dots me-2"></i>
+                        Request Demo
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div style="background: rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem; backdrop-filter: blur(10px);">
+                    <i class="bi bi-cpu-fill" style="font-size: 4rem; color: white; opacity: 0.8;"></i>
+                    <h4 class="mt-3 mb-2">AI-Powered Detection</h4>
+                    <p class="mb-0 opacity-75">Advanced YOLO models for computer vision</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number" style="color: #3b82f6;">YOLO</span>
+                    <div class="stat-label">AI Model Technology</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number" style="color: #10b981;">2025</span>
+                    <div class="stat-label">Award Winning</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number" style="color: #f59e0b;">S3</span>
+                    <div class="stat-label">Cloud Storage</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number" style="color: #ef4444;">Real-Time</span>
+                    <div class="stat-label">Detection</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container my-5 py-5">
+    <h2 class="section-title">Intelligent Infrastructure Solutions</h2>
+    <p class="section-subtitle">
+        Our comprehensive platform combines AI detection, cloud storage, and real-time analytics to provide complete road infrastructure monitoring.
+    </p>
+
+    <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+            <div class="card feature-card">
+                <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                    <i class="bi bi-eye-fill"></i>
+                </div>
+                <h4 class="text-center mb-3">Edge AI Detection</h4>
+                <p class="text-center text-muted">
+                    YOLOv11-Nano models optimized for real-time inference on Raspberry Pi with Hailo AI accelerator for edge computing.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card feature-card">
+                <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    <i class="bi bi-cloud-upload-fill"></i>
+                </div>
+                <h4 class="text-center mb-3">Smart Hardware</h4>
+                <p class="text-center text-muted">
+                    Custom Raspberry Pi 5 systems with Hailo-8L AI accelerators, GPS modules, and ruggedized camera systems for vehicle deployment.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card feature-card">
+                <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <h4 class="text-center mb-3">Real-Time Analytics</h4>
+                <p class="text-center text-muted">
+                    Comprehensive dashboards and reporting tools that turn detection data into actionable infrastructure insights.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card feature-card">
+                <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </div>
+                <h4 class="text-center mb-3">Interactive Mapping</h4>
+                <p class="text-center text-muted">
+                    Dynamic maps with clustering, filtering, and export capabilities for comprehensive infrastructure management.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card feature-card">
+                <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                    <i class="bi bi-diagram-3-fill"></i>
+                </div>
+                <h4 class="text-center mb-3">Data Pipeline</h4>
+                <p class="text-center text-muted">
+                    Comprehensive data flow from edge devices through Tigris S3 storage with JSON metadata and RESTful API access.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card feature-card">
+                <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+                <h4 class="text-center mb-3">Geospatial Processing</h4>
+                <p class="text-center text-muted">
+                    GPS-tagged detection data with PostGIS database integration and comprehensive geospatial analysis capabilities.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mission Section -->
+<div class="stats-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="section-title text-start">Our Mission</h2>
+                <p class="lead mb-4">
+                    To develop innovative AI-powered solutions for infrastructure monitoring, starting with pothole detection technology that can help improve road safety and maintenance efficiency.
+                </p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle p-2 me-3">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                            <span class="fw-semibold">Automated Detection</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success text-white rounded-circle p-2 me-3">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                            <span class="fw-semibold">Cost Reduction</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning text-white rounded-circle p-2 me-3">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                            <span class="fw-semibold">Improved Safety</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-info text-white rounded-circle p-2 me-3">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                            <span class="fw-semibold">Data-Driven Insights</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="position-relative">
+                    <div style="background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 20px; padding: 3rem; color: white;">
+                        <i class="bi bi-bullseye" style="font-size: 4rem; opacity: 0.8;"></i>
+                        <h4 class="mt-3 mb-2">Vision 2025</h4>
+                        <p class="mb-0 opacity-75">Leading the transformation of smart city infrastructure monitoring across North America</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Technology Section -->
+<div class="container my-5 py-5">
+    <h2 class="section-title">Award-Winning Technology</h2>
+    <p class="section-subtitle">
+        Built by award-winning engineers, our platform represents the cutting edge of AI-powered infrastructure monitoring.
+    </p>
+
+    <div class="row g-4 align-items-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4">
+                    <h4 class="mb-3">
+                        <i class="bi bi-award-fill text-warning me-2"></i>
+                        Senior Design Champions
+                    </h4>
+                    <p class="mb-4">
+                        Our team won the prestigious 2025 Senior Design Championship at Drexel University, recognizing our innovative approach to AI-powered infrastructure monitoring.
+                    </p>
+
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h5 class="text-primary mb-1">YOLO v11</h5>
+                                <small class="text-muted">Computer Vision</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h5 class="text-success mb-1">Raspberry Pi</h5>
+                                <small class="text-muted">Edge Computing</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h5 class="text-warning mb-1">Hailo AI</h5>
+                                <small class="text-muted">Accelerator</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h5 class="text-info mb-1">Tigris S3</h5>
+                                <small class="text-muted">Cloud Storage</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="card bg-primary text-white border-0">
+                        <div class="card-body text-center p-4">
+                            <i class="bi bi-people-fill" style="font-size: 3rem; opacity: 0.8;"></i>
+                            <h4 class="mt-3 mb-2">Expert Leadership Team</h4>
+                            <p class="mb-0 opacity-75">5 experienced executives driving innovation in infrastructure technology</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-success text-white border-0">
+                        <div class="card-body text-center p-3">
+                            <i class="bi bi-globe-americas" style="font-size: 2rem;"></i>
+                            <h5 class="mt-2 mb-1">Global Scale</h5>
+                            <small class="opacity-75">Enterprise-ready platform</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-warning text-white border-0">
+                        <div class="card-body text-center p-3">
+                            <i class="bi bi-lightning-charge-fill" style="font-size: 2rem;"></i>
+                            <h5 class="mt-2 mb-1">Fast Deploy</h5>
+                            <small class="opacity-75">Ready in 24 hours</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action Section -->
+<div class="cta-section">
+    <div class="container text-center">
+        <h2 class="display-5 fw-bold mb-3">Ready to Transform Your Infrastructure?</h2>
+        <p class="lead mb-4 opacity-75">
+            Experience our award-winning pothole detection technology and see how AI can transform infrastructure monitoring.
+        </p>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                    <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-primary-custom">
+                        <i class="bi bi-play-circle me-2"></i>
+                        Explore Platform
+                    </a>
+                    <a href="{{ url_for('dashboard.analytics') }}" class="btn btn-outline-custom">
+                        <i class="bi bi-graph-up me-2"></i>
+                        View Analytics
+                    </a>
+                    <a href="{{ url_for('dashboard.contact') }}" class="btn btn-outline-custom">
+                        <i class="bi bi-envelope me-2"></i>
+                        Contact Sales
+                    </a>
+                </div>
+
+                <div class="mt-4 pt-4 border-top border-white border-opacity-25">
+                    <p class="mb-2 opacity-75">Partnership:</p>
+                    <div class="d-flex justify-content-center align-items-center gap-4 opacity-75">
+                        <span class="fw-bold">🚌 Drexel Shuttle Service</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Access Tools -->
+<div class="container my-5">
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-cloud-upload text-primary" style="font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="mb-3">Upload & Analyze</h5>
+                    <p class="text-muted mb-4">Upload your road images for instant AI-powered pothole detection and analysis.</p>
+                    <a href="/upload" class="btn btn-primary">
+                        <i class="bi bi-upload me-2"></i>
+                        Start Upload
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-exclamation-triangle text-success" style="font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="mb-3">Report Incidents</h5>
+                    <p class="text-muted mb-4">Report new road issues directly through our incident management system.</p>
+                    <a href="{{ url_for('dashboard.incidents') }}" class="btn btn-success">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Report Issue
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add subtle animations on scroll
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -100px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Apply fade-in animation to feature cards
+    document.querySelectorAll('.feature-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+        observer.observe(card);
+    });
+
+    // Animate stats counters
+    document.querySelectorAll('.stat-number').forEach(stat => {
+        observer.observe(stat);
+    });
+});
+</script>
+{% endblock %}

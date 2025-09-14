@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Potholes.io{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="display-5 fw-bold text-primary">
+                    <i class="bi bi-bar-chart"></i>
+                    Analytics Dashboard
+                </h1>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" id="refreshBtn">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="exportBtn">
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-exclamation-circle fs-3"></i>
+                    </div>
+                    <h3 class="text-primary mb-1" id="totalPotholes">-</h3>
+                    <h6 class="text-muted mb-0">Total Potholes</h6>
+                    <small class="text-success">
+                        <i class="bi bi-arrow-up"></i>
+                        <span id="totalChange">-</span>% vs last month
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-exclamation-triangle fs-3"></i>
+                    </div>
+                    <h3 class="text-danger mb-1" id="highSeverity">-</h3>
+                    <h6 class="text-muted mb-0">High Severity</h6>
+                    <small class="text-danger">
+                        <i class="bi bi-arrow-up"></i>
+                        <span id="severityChange">-</span>% critical issues
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-calendar-week fs-3"></i>
+                    </div>
+                    <h3 class="text-warning mb-1" id="weeklyDetections">-</h3>
+                    <h6 class="text-muted mb-0">This Week</h6>
+                    <small class="text-info">
+                        <i class="bi bi-graph-up"></i>
+                        <span id="weeklyTrend">-</span> daily average
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-check-circle fs-3"></i>
+                    </div>
+                    <h3 class="text-success mb-1" id="avgConfidence">-</h3>
+                    <h6 class="text-muted mb-0">Avg Confidence</h6>
+                    <small class="text-success">
+                        <i class="bi bi-arrow-up"></i>
+                        Model accuracy improving
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-graph-up"></i>
+                        Detection Trends
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendsChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pie-chart"></i>
+                        Severity Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="severityChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Analytics Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-geo-alt"></i>
+                        Geographic Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="geographicChart" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock"></i>
+                        Detection Times
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="timeChart" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-activity"></i>
+                            Recent Activity
+                        </h5>
+                        <small class="text-muted">Last 24 hours</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                    <th>Severity</th>
+                                    <th>Confidence</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentActivity">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <i class="bi bi-hourglass-split"></i>
+                                        Loading recent activity...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialize charts and data
+let trendsChart, severityChart, geographicChart, timeChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    loadAnalyticsData();
+
+    // Refresh button
+    document.getElementById('refreshBtn').addEventListener('click', loadAnalyticsData);
+
+    // Export button
+    document.getElementById('exportBtn').addEventListener('click', exportAnalytics);
+});
+
+async function loadAnalyticsData() {
+    try {
+        const response = await fetch('/api/analytics/summary');
+        const data = await response.json();
+
+        updateMetrics(data.metrics);
+        updateCharts(data.charts);
+        updateRecentActivity(data.recent);
+    } catch (error) {
+        console.error('Error loading analytics:', error);
+        showError('Failed to load analytics data');
+    }
+}
+
+function updateMetrics(metrics) {
+    document.getElementById('totalPotholes').textContent = metrics.total || 0;
+    document.getElementById('highSeverity').textContent = metrics.highSeverity || 0;
+    document.getElementById('weeklyDetections').textContent = metrics.weekly || 0;
+    document.getElementById('avgConfidence').textContent = (metrics.confidence || 0) + '%';
+    document.getElementById('totalChange').textContent = metrics.totalChange || 0;
+    document.getElementById('severityChange').textContent = metrics.severityChange || 0;
+    document.getElementById('weeklyTrend').textContent = metrics.weeklyTrend || 0;
+}
+
+function initializeCharts() {
+    // Trends Chart
+    const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+    trendsChart = new Chart(trendsCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Detections',
+                data: [],
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Severity Chart
+    const severityCtx = document.getElementById('severityChart').getContext('2d');
+    severityChart = new Chart(severityCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Low', 'Medium', 'High', 'Critical'],
+            datasets: [{
+                data: [0, 0, 0, 0],
+                backgroundColor: ['#198754', '#ffc107', '#fd7e14', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Geographic Chart
+    const geoCtx = document.getElementById('geographicChart').getContext('2d');
+    geographicChart = new Chart(geoCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Detections by Area',
+                data: [],
+                backgroundColor: '#0d6efd'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Time Chart
+    const timeCtx = document.getElementById('timeChart').getContext('2d');
+    timeChart = new Chart(timeCtx, {
+        type: 'radar',
+        data: {
+            labels: ['Morning', 'Afternoon', 'Evening', 'Night'],
+            datasets: [{
+                label: 'Detection Distribution',
+                data: [0, 0, 0, 0],
+                borderColor: '#198754',
+                backgroundColor: 'rgba(25, 135, 84, 0.2)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+function updateCharts(chartsData) {
+    if (!chartsData) return;
+
+    // Update trends chart
+    if (chartsData.trends) {
+        trendsChart.data.labels = chartsData.trends.labels;
+        trendsChart.data.datasets[0].data = chartsData.trends.data;
+        trendsChart.update();
+    }
+
+    // Update severity chart
+    if (chartsData.severity) {
+        severityChart.data.datasets[0].data = chartsData.severity;
+        severityChart.update();
+    }
+
+    // Update geographic chart
+    if (chartsData.geographic) {
+        geographicChart.data.labels = chartsData.geographic.labels;
+        geographicChart.data.datasets[0].data = chartsData.geographic.data;
+        geographicChart.update();
+    }
+
+    // Update time chart
+    if (chartsData.timeDistribution) {
+        timeChart.data.datasets[0].data = chartsData.timeDistribution;
+        timeChart.update();
+    }
+}
+
+function updateRecentActivity(activity) {
+    const tbody = document.getElementById('recentActivity');
+    if (!activity || activity.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted py-4">
+                    <i class="bi bi-inbox"></i>
+                    No recent activity
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = activity.map(item => `
+        <tr>
+            <td>${new Date(item.timestamp).toLocaleTimeString()}</td>
+            <td>${item.location}</td>
+            <td>
+                <span class="badge bg-${getSeverityColor(item.severity)}">
+                    ${item.severity}
+                </span>
+            </td>
+            <td>${item.confidence}%</td>
+            <td>
+                <span class="badge bg-${item.status === 'new' ? 'primary' : 'secondary'}">
+                    ${item.status}
+                </span>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function getSeverityColor(severity) {
+    const colors = {
+        1: 'success',
+        2: 'info',
+        3: 'warning',
+        4: 'danger',
+        5: 'danger'
+    };
+    return colors[severity] || 'secondary';
+}
+
+function exportAnalytics() {
+    window.location.href = '/export?format=csv&type=analytics';
+}
+
+function showError(message) {
+    // Show error notification
+    console.error(message);
+}
+</script>
+{% endblock %}

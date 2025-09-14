@@ -1,0 +1,700 @@
+{% extends "base.html" %}
+
+{% block title %}Incidents - Potholes.io{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="display-5 fw-bold text-primary">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Incident Management
+                </h1>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reportModal">
+                        <i class="bi bi-plus-circle"></i> Report Incident
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="refreshIncidents">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-exclamation-triangle fs-3"></i>
+                    </div>
+                    <h3 class="text-danger mb-1" id="activeIncidents">-</h3>
+                    <h6 class="text-muted mb-0">Active Incidents</h6>
+                    <small class="text-danger">Requires attention</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-hourglass-split fs-3"></i>
+                    </div>
+                    <h3 class="text-warning mb-1" id="pendingIncidents">-</h3>
+                    <h6 class="text-muted mb-0">Pending Review</h6>
+                    <small class="text-warning">Awaiting assessment</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-tools fs-3"></i>
+                    </div>
+                    <h3 class="text-primary mb-1" id="inProgressIncidents">-</h3>
+                    <h6 class="text-muted mb-0">In Progress</h6>
+                    <small class="text-primary">Being resolved</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-check-circle fs-3"></i>
+                    </div>
+                    <h3 class="text-success mb-1" id="resolvedIncidents">-</h3>
+                    <h6 class="text-muted mb-0">Resolved</h6>
+                    <small class="text-success">This week</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-3">
+                            <label for="statusFilter" class="form-label">Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="severityFilter" class="form-label">Severity</label>
+                            <select class="form-select" id="severityFilter">
+                                <option value="">All Severities</option>
+                                <option value="1">Low (1)</option>
+                                <option value="2">Medium (2)</option>
+                                <option value="3">High (3)</option>
+                                <option value="4">Critical (4)</option>
+                                <option value="5">Emergency (5)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="searchInput" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search incidents...">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="button" class="btn btn-outline-primary w-100" id="applyFilters">
+                                <i class="bi bi-funnel"></i> Apply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incidents Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list-ul"></i>
+                        Incident Reports
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date/Time</th>
+                                    <th>Location</th>
+                                    <th>Severity</th>
+                                    <th>Status</th>
+                                    <th>Confidence</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="incidentsTable">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2 text-muted">Loading incidents...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <nav>
+                        <ul class="pagination justify-content-center mb-0" id="pagination">
+                            <!-- Pagination will be populated by JavaScript -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Incident Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle"></i>
+                    Report New Incident
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reportForm">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Select Location on Map *</label>
+                            <div id="incidentMap" style="height: 300px; border-radius: 12px; overflow: hidden; border: 2px solid #e5e7eb;"></div>
+                            <div class="form-text mt-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Click on the map to select the pothole location. Selected coordinates:
+                                <span id="selectedCoords" class="fw-bold text-primary">None selected</span>
+                            </div>
+                            <input type="hidden" id="incidentLat" required>
+                            <input type="hidden" id="incidentLng" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="incidentSeverity" class="form-label">Severity *</label>
+                            <select class="form-select" id="incidentSeverity" required>
+                                <option value="">Select severity</option>
+                                <option value="1">Low (1) - Minor crack</option>
+                                <option value="2">Medium (2) - Noticeable damage</option>
+                                <option value="3">High (3) - Significant pothole</option>
+                                <option value="4">Critical (4) - Dangerous condition</option>
+                                <option value="5">Emergency (5) - Immediate hazard</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="incidentConfidence" class="form-label">Confidence (%)</label>
+                            <input type="number" class="form-control" id="incidentConfidence" min="0" max="100" value="95">
+                        </div>
+                        <div class="col-12">
+                            <label for="incidentDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="incidentDescription" rows="3" placeholder="Describe the pothole condition, size, location details..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label for="incidentImage" class="form-label">Upload Image (optional)</label>
+                            <input type="file" class="form-control" id="incidentImage" accept="image/*">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitReport">
+                    <i class="bi bi-check-circle"></i> Report Incident
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Incident Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-info-circle"></i>
+                    Incident Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="incidentDetails">
+                <!-- Details will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning" id="updateStatus">Update Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 1;
+let currentFilters = {};
+let incidentMap = null;
+let incidentMarker = null;
+let selectedLocation = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadIncidents();
+    loadIncidentStats();
+
+    // Event listeners
+    document.getElementById('refreshIncidents').addEventListener('click', () => {
+        loadIncidents();
+        loadIncidentStats();
+    });
+
+    document.getElementById('applyFilters').addEventListener('click', applyFilters);
+    document.getElementById('submitReport').addEventListener('click', submitReport);
+
+    // Search on input
+    document.getElementById('searchInput').addEventListener('input', debounce(applyFilters, 300));
+
+    // Initialize map when modal is shown
+    document.getElementById('reportModal').addEventListener('shown.bs.modal', initIncidentMap);
+
+    // Clean up map when modal is hidden
+    document.getElementById('reportModal').addEventListener('hidden.bs.modal', cleanupIncidentMap);
+});
+
+function initIncidentMap() {
+    // Initialize the map for incident reporting
+    if (!incidentMap) {
+        incidentMap = L.map('incidentMap').setView([39.9526, -75.1652], 13);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://carto.com/">CARTO</a> contributors',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(incidentMap);
+
+        // Add click event to select location
+        incidentMap.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+
+            // Remove existing marker
+            if (incidentMarker) {
+                incidentMap.removeLayer(incidentMarker);
+            }
+
+            // Add new marker at clicked location
+            incidentMarker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                    html: `<div style="
+                        background: linear-gradient(135deg, #667eea, #764ba2);
+                        width: 20px; height: 20px;
+                        border: 3px solid white;
+                        border-radius: 50%;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                        position: relative;
+                    ">
+                        <div style="
+                            position: absolute;
+                            top: 50%; left: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 8px; height: 8px;
+                            background: white;
+                            border-radius: 50%;
+                        "></div>
+                    </div>`,
+                    className: '',
+                    iconSize: [26, 26],
+                    iconAnchor: [13, 13]
+                })
+            }).addTo(incidentMap);
+
+            // Update form fields
+            document.getElementById('incidentLat').value = lat.toFixed(6);
+            document.getElementById('incidentLng').value = lng.toFixed(6);
+
+            // Update display
+            document.getElementById('selectedCoords').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            document.getElementById('selectedCoords').className = 'fw-bold text-success';
+
+            selectedLocation = { lat, lng };
+        });
+
+        // Try to get user's current location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                incidentMap.setView([userLat, userLng], 15);
+
+                // Add a subtle indicator for user location
+                L.circle([userLat, userLng], {
+                    color: '#3b82f6',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 0.1,
+                    radius: 100
+                }).addTo(incidentMap);
+            });
+        }
+    }
+
+    // Resize map to ensure proper display
+    setTimeout(() => {
+        if (incidentMap) {
+            incidentMap.invalidateSize();
+        }
+    }, 100);
+}
+
+function cleanupIncidentMap() {
+    // Reset form and map state
+    if (incidentMarker) {
+        incidentMap.removeLayer(incidentMarker);
+        incidentMarker = null;
+    }
+
+    selectedLocation = null;
+    document.getElementById('selectedCoords').textContent = 'None selected';
+    document.getElementById('selectedCoords').className = 'fw-bold text-primary';
+    document.getElementById('incidentLat').value = '';
+    document.getElementById('incidentLng').value = '';
+}
+
+async function loadIncidents(page = 1) {
+    try {
+        const params = new URLSearchParams({
+            ...currentFilters
+        });
+
+        const response = await fetch(`/api/potholes?${params}`);
+        const data = await response.json();
+
+        // Since data is an array of potholes, we'll simulate pagination client-side
+        const itemsPerPage = 10;
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedData = data.slice(startIndex, endIndex);
+
+        const paginationInfo = {
+            totalPages: Math.ceil(data.length / itemsPerPage),
+            currentPage: page,
+            totalItems: data.length
+        };
+
+        updateIncidentsTable({ potholes: paginatedData, pagination: paginationInfo });
+        updatePagination(paginationInfo);
+    } catch (error) {
+        console.error('Error loading incidents:', error);
+        showError('Failed to load incidents');
+    }
+}
+
+async function loadIncidentStats() {
+    try {
+        const response = await fetch('/api/incidents/stats');
+        const stats = await response.json();
+
+        document.getElementById('activeIncidents').textContent = stats.active || 0;
+        document.getElementById('pendingIncidents').textContent = stats.pending || 0;
+        document.getElementById('inProgressIncidents').textContent = stats.inProgress || 0;
+        document.getElementById('resolvedIncidents').textContent = stats.resolved || 0;
+    } catch (error) {
+        console.error('Error loading incident stats:', error);
+    }
+}
+
+function updateIncidentsTable(data) {
+    const tbody = document.getElementById('incidentsTable');
+
+    if (!data.potholes || data.potholes.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <i class="bi bi-inbox"></i>
+                    <p class="mt-2 text-muted">No incidents found</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = data.potholes.map(incident => {
+        const confidencePercent = Math.round((incident.confidence || 0) * 100);
+        const severityText = incident.severity >= 4 ? 'Critical' : incident.severity >= 3 ? 'High' : incident.severity >= 2 ? 'Medium' : 'Low';
+        const status = getIncidentStatus(incident);
+
+        return `
+        <tr>
+            <td><strong>#${incident.id}</strong></td>
+            <td>${formatDate(incident.date)}</td>
+            <td>
+                <small class="text-muted font-monospace">
+                    ${incident.lat?.toFixed(4)}, ${incident.lng?.toFixed(4)}
+                </small>
+                ${incident.s3_prefix ? `<br><small class="text-info">📁 ${incident.s3_prefix}</small>` : ''}
+            </td>
+            <td>
+                <span class="badge bg-${getSeverityColor(incident.severity)}">
+                    ${severityText} (${incident.severity})
+                </span>
+            </td>
+            <td>
+                <span class="badge bg-${getStatusColor(status)}">
+                    ${formatStatus(status)}
+                </span>
+            </td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="progress me-2" style="width: 60px; height: 8px; border-radius: 4px;">
+                        <div class="progress-bar bg-success" role="progressbar"
+                             style="width: ${confidencePercent}%"
+                             aria-valuenow="${confidencePercent}"></div>
+                    </div>
+                    <small class="fw-bold">${confidencePercent}%</small>
+                </div>
+            </td>
+            <td>
+                <div class="btn-group btn-group-sm" role="group">
+                    ${incident.image_url ? `
+                        <button type="button" class="btn btn-outline-info" onclick="viewImage('${incident.image_url}')" title="View Image">
+                            <i class="bi bi-image"></i>
+                        </button>
+                    ` : ''}
+                    <button type="button" class="btn btn-outline-primary" onclick="viewIncident('${incident.id}')" title="View Details">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="editIncident('${incident.id}')" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+        `;
+    }).join('');
+}
+
+function updatePagination(pagination) {
+    const nav = document.getElementById('pagination');
+    if (!pagination || pagination.totalPages <= 1) {
+        nav.innerHTML = '';
+        return;
+    }
+
+    let html = '';
+    for (let i = 1; i <= pagination.totalPages; i++) {
+        html += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+            </li>
+        `;
+    }
+    nav.innerHTML = html;
+}
+
+function applyFilters() {
+    currentFilters = {
+        status: document.getElementById('statusFilter').value,
+        severity: document.getElementById('severityFilter').value,
+        search: document.getElementById('searchInput').value
+    };
+
+    currentPage = 1;
+    loadIncidents(currentPage);
+}
+
+function changePage(page) {
+    currentPage = page;
+    loadIncidents(page);
+}
+
+async function submitReport() {
+    // Check if location is selected
+    if (!selectedLocation) {
+        alert('Please select a location on the map first.');
+        return;
+    }
+
+    const form = document.getElementById('reportForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    const reportData = {
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng,
+        severity: parseInt(document.getElementById('incidentSeverity').value),
+        confidence: parseInt(document.getElementById('incidentConfidence').value),
+        description: document.getElementById('incidentDescription').value,
+        timestamp: new Date().toISOString()
+    };
+
+    try {
+        const response = await fetch('/api/incidents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reportData)
+        });
+
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
+            form.reset();
+            cleanupIncidentMap(); // Clear map selection
+            loadIncidents();
+            loadIncidentStats();
+            showSuccess('Incident reported successfully');
+        } else {
+            throw new Error('Failed to report incident');
+        }
+    } catch (error) {
+        console.error('Error reporting incident:', error);
+        showError('Failed to report incident');
+    }
+}
+
+function getIncidentStatus(incident) {
+    // Determine status based on S3 data characteristics
+    const daysSinceDetection = getDaysSince(incident.date);
+
+    if (incident.severity >= 4) {
+        return 'active'; // High severity = active
+    } else if (daysSinceDetection <= 1) {
+        return 'pending'; // Recent detections = pending review
+    } else if (daysSinceDetection <= 7 && incident.severity >= 3) {
+        return 'in_progress'; // Medium severity within week = in progress
+    } else {
+        return 'resolved'; // Older or low severity = resolved
+    }
+}
+
+function getDaysSince(dateString) {
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    } catch {
+        return 999; // Default to old if can't parse
+    }
+}
+
+function viewImage(imageUrl) {
+    // Create modal to view full-size image
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-image"></i> Pothole Image
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="${imageUrl}" class="img-fluid rounded" alt="Pothole image" style="max-height: 70vh;">
+                </div>
+                <div class="modal-footer">
+                    <a href="${imageUrl}" target="_blank" class="btn btn-primary">
+                        <i class="bi bi-download"></i> Open Full Size
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+
+    modal.addEventListener('hidden.bs.modal', () => {
+        document.body.removeChild(modal);
+    });
+}
+
+function viewIncident(id) {
+    // Navigate to detailed incident view
+    window.location.href = `/incidents/${id}`;
+}
+
+function editIncident(id) {
+    // Implement incident editing logic - could open modal or navigate to edit page
+    console.log('Edit incident:', id);
+    alert(`Edit functionality for incident #${id} - Coming soon!`);
+}
+
+function getSeverityColor(severity) {
+    const colors = {
+        1: 'success',
+        2: 'info',
+        3: 'warning',
+        4: 'danger',
+        5: 'danger'
+    };
+    return colors[severity] || 'secondary';
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'active': 'danger',
+        'pending': 'warning',
+        'in_progress': 'primary',
+        'resolved': 'success'
+    };
+    return colors[status] || 'secondary';
+}
+
+function formatStatus(status) {
+    return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showSuccess(message) {
+    // Implement success notification
+    console.log('Success:', message);
+}
+
+function showError(message) {
+    // Implement error notification
+    console.error('Error:', message);
+}
+</script>
+{% endblock %}

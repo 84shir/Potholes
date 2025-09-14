@@ -2,82 +2,630 @@
 html, body {
     margin: 0; padding: 0; height: 100%;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f0f2f5; overflow: hidden;
+    background: #f0f2f5;
+  }
+
+  /* Map page specific - allow scrolling on dashboard */
+  body.map-page {
+    overflow-x: hidden;
+    overflow-y: auto;
   }
   
   /* ===== Map ===== */
   #map {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    position: relative;
+    width: 100%;
+    height: 100%;
   }
   
-  /* ===== Panel (Legend) ===== */
+  /* ===== Modern Panel (Legend) ===== */
   .leaflet-control .legend {
     position: absolute;
     top: 1rem; left: 1rem;
-    width: 280px;
+    width: 320px;
     max-height: calc(100% - 2rem);
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(6px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    border-radius: 8px;
-    padding: 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    padding: 1.5rem;
     overflow-y: auto;
     z-index: 1000;
-    font-size: 0.9rem;
-    color: #333;
+    font-size: 0.875rem;
+    color: #374151;
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
-  
-  /* Panel Header */
+
+  /* Modern Panel Header */
   .leaflet-control .legend h3 {
-    margin: 0 0 0.75rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 0.3rem;
+    margin: 0 0 1.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
-  
-  /* Filter Groups */
+
+  .leaflet-control .legend h3::before {
+    content: "🗺️";
+    -webkit-text-fill-color: initial;
+    background: none;
+  }
+
+  /* Modern Filter Groups */
   .filter-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(249, 250, 251, 0.8);
+    border-radius: 12px;
+    border: 1px solid rgba(229, 231, 235, 0.5);
   }
+
   .filter-group label {
     display: block;
-    margin-bottom: 0.3rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #555;
+    margin-bottom: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
     text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
+
   .filter-group select,
   .filter-group input[type="date"],
   .filter-group input[type="number"] {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
     box-sizing: border-box;
-    font-size: 0.9rem;
-    background: #fff;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: white;
+    color: #374151;
+    transition: all 0.2s ease;
   }
-  
-  /* Export Buttons */
+
+  .filter-group select:focus,
+  .filter-group input[type="date"]:focus,
+  .filter-group input[type="number"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .filter-group select:hover,
+  .filter-group input[type="date"]:hover,
+  .filter-group input[type="number"]:hover {
+    border-color: #d1d5db;
+  }
+
+  /* Modern Export Buttons */
   .export-btn {
     display: block;
     width: 100%;
-    padding: 0.6rem;
-    margin-top: 0.5rem;
-    font-size: 1rem;
-    font-weight: 500;
+    padding: 0.875rem 1.5rem;
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
     text-align: center;
-    color: #fff;
-    background: #007bff;
+    color: white;
+    background: linear-gradient(135deg, #667eea, #764ba2);
     border: none;
-    border-radius: 4px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
   }
+
   .export-btn:hover {
-    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  }
+
+  .export-btn:active {
+    transform: translateY(0);
+  }
+
+  .export-btn.secondary {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+
+  .export-btn.secondary:hover {
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+  }
+
+  /* Filter Section Headers */
+  .filter-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .filter-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  /* Statistics in Legend */
+  .legend-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(239, 246, 255, 0.8);
+    border-radius: 12px;
+    border: 1px solid rgba(59, 130, 246, 0.1);
+  }
+
+  .legend-stat {
+    text-align: center;
+  }
+
+  .legend-stat-number {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .legend-stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Severity Legend */
+  .severity-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  .severity-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+  }
+
+  .severity-item:hover {
+    background: rgba(249, 250, 251, 0.8);
+  }
+
+  .severity-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .severity-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  /* ===== Modern Map Popups ===== */
+  .leaflet-popup-content-wrapper {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .leaflet-popup-content {
+    margin: 0;
+    padding: 0;
+    width: 320px !important;
+    max-width: 90vw;
+  }
+
+  .leaflet-popup-tip {
+    background: white;
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Popup Header */
+  .popup-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 1rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .popup-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20px;
+    width: 100px;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(15deg);
+  }
+
+  .popup-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    letter-spacing: -0.025em;
+  }
+
+  .popup-subtitle {
+    font-size: 0.875rem;
+    opacity: 0.9;
+    margin: 0.5rem 0 0;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    font-weight: 500;
+  }
+
+  /* Popup Content */
+  .popup-body {
+    padding: 1.5rem;
+  }
+
+  .popup-image-container {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
+  }
+
+  .popup-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .popup-image:hover {
+    transform: scale(1.05);
+  }
+
+  .popup-image-placeholder {
+    width: 100%;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+    color: #9ca3af;
+    font-size: 3rem;
+    border-radius: 12px;
+  }
+
+  .popup-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    background: #f9fafb;
+    border-radius: 12px;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .popup-loading .spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #e5e7eb;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Popup Details */
+  .popup-details {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .popup-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .popup-info-item {
+    background: rgba(249, 250, 251, 0.8);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(229, 231, 235, 0.6);
+    text-align: center;
+  }
+
+  .popup-info-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+
+  .popup-info-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1f2937;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+  }
+
+  .popup-info-value.severity {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .popup-severity-badge {
+    padding: 0.375rem 1rem;
+    border-radius: 25px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+
+  .popup-severity-badge.severity-1 {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+  }
+
+  .popup-severity-badge.severity-2 {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+  }
+
+  .popup-severity-badge.severity-3 {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+  }
+
+  .popup-severity-badge.severity-4,
+  .popup-severity-badge.severity-5 {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+  }
+
+  .popup-confidence-bar {
+    width: 100%;
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+  }
+
+  .popup-confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #059669);
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  /* Popup Description */
+  .popup-description {
+    background: rgba(239, 246, 255, 0.6);
+    padding: 1rem;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+    margin-top: 1rem;
+  }
+
+  .popup-description-text {
+    font-size: 0.875rem;
+    color: #374151;
+    line-height: 1.6;
+    margin: 0;
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-weight: 500;
+  }
+
+  /* Popup Actions */
+  .popup-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .popup-action-btn {
+    flex: 1;
+    padding: 0.875rem 1.25rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+  }
+
+  .popup-action-btn.primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+  }
+
+  .popup-action-btn.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+
+  .popup-action-btn.secondary {
+    background: rgba(249, 250, 251, 0.8);
+    color: #374151;
+    border: 1px solid #d1d5db;
+  }
+
+  .popup-action-btn.secondary:hover {
+    background: rgba(243, 244, 246, 0.9);
+    transform: translateY(-1px);
+  }
+
+  /* Popup Meta Info */
+  .popup-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background: rgba(249, 250, 251, 0.9);
+    border-top: 1px solid #e5e7eb;
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-weight: 500;
+  }
+
+  .popup-timestamp {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-weight: 600;
+  }
+
+  .popup-coordinates {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    font-weight: 600;
+    font-size: 0.7rem;
+  }
+
+  /* ===== Modern Scale Control ===== */
+  .leaflet-control-scale {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid rgba(229, 231, 235, 0.8) !important;
+    padding: 0.75rem !important;
+    margin: 1rem !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+    overflow: hidden !important;
+  }
+
+  .leaflet-control-scale-line {
+    background: none !important;
+    border: none !important;
+    border-bottom: 3px solid #667eea !important;
+    border-left: 2px solid #667eea !important;
+    border-right: 2px solid #667eea !important;
+    color: #374151 !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    padding: 0.25rem 0.5rem 0 !important;
+    margin: 0 !important;
+    text-align: center !important;
+    letter-spacing: 0.025em !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    position: relative !important;
+  }
+
+  .leaflet-control-scale-line::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent !important;
+    z-index: -1;
+  }
+
+  .leaflet-control-scale-line:not(:first-child) {
+    border-bottom: 3px solid #10b981 !important;
+    border-left: 2px solid #10b981 !important;
+    border-right: 2px solid #10b981 !important;
+    margin-top: 0.25rem !important;
+  }
+
+  /* Scale hover effect */
+  .leaflet-control-scale:hover {
+    background: rgba(255, 255, 255, 1) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  /* Responsive Popup */
+  @media (max-width: 480px) {
+    .leaflet-popup-content {
+      width: 280px !important;
+    }
+
+    .popup-info-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .popup-actions {
+      flex-direction: column;
+    }
+
+    .popup-header {
+      padding: 1rem;
+    }
+
+    .popup-body {
+      padding: 1rem;
+    }
+
+    .leaflet-control-scale {
+      margin: 0.5rem !important;
+      padding: 0.375rem 0.5rem !important;
+    }
+
+    .leaflet-control-scale-line {
+      font-size: 0.7rem !important;
+    }
   }
   
